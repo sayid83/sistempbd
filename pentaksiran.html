@@ -989,65 +989,60 @@ function kemaskiniDirtyCount() {
 // ISI SEMUA
 // ═════════════════════════════════════════════════════
 function bukaFillModal() {
-  S.fillTp      = null;
-  S.fillTajuk   = null;
+  S.fillTp    = null;
+  S.fillTajuk = null;
 
   // Reset TP chips
   document.querySelectorAll('#fillTpBtns .tp-chip').forEach(function(c) {
     c.style.outline = 'none';
   });
 
-  // Bina pokok tajuk > subtopik dari topik dalam grid semasa (tajuk aktif)
-  var subsAktif = S.topik.filter(function(t){
+  // Hanya ambil subtopik tajuk yang sedang dipilih
+  var subsAktif = S.topik.filter(function(t) {
     return (t.tajuk || '(Tiada Tajuk)') === S.aktifTajuk;
   });
-
-  // Kumpul by tajuk (sebenarnya dalam satu tajuk, subtopik-subtopik)
-  // Tapi kalau nak semua tajuk tersenarai, gunakan S.tajuk
-  var allGroups = S.tajuk || [];
 
   var tree = document.getElementById('fillSubtopikTree');
   tree.innerHTML = '';
 
-  // Baris "Pilih Semua"
-  tree.innerHTML += '<div style="padding:10px 14px;border-bottom:1px solid #e5e7eb;background:#f1f5f9;border-radius:10px 10px 0 0">' +
-    '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">' +
-    '<input type="checkbox" id="cbSemua" onchange="toggleSemua(this)" style="width:16px;height:16px;accent-color:#1e6fe8;cursor:pointer">' +
-    '<span style="font-size:13px;font-weight:800;color:#1a1f3a">Pilih Semua Subtopik</span>' +
-    '<span style="margin-left:auto;font-size:11px;font-weight:700;color:#9ca3af;font-family:\'JetBrains Mono\',monospace" id="fillCountAll">' +
-    subsAktif.length + ' subtopik</span>' +
-    '</label></div>';
+  // Baris "Pilih Semua" — kira dari tajuk aktif sahaja
+  tree.innerHTML +=
+    '<div style="padding:10px 14px;border-bottom:1px solid #e5e7eb;background:#f1f5f9;border-radius:10px 10px 0 0">' +
+      '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">' +
+        '<input type="checkbox" id="cbSemua" onchange="toggleSemua(this)" checked ' +
+          'style="width:16px;height:16px;accent-color:#1e6fe8;cursor:pointer">' +
+        '<span style="font-size:13px;font-weight:800;color:#1a1f3a">Pilih Semua Subtopik</span>' +
+        '<span style="margin-left:auto;font-size:11px;font-weight:700;color:#9ca3af;font-family:\'JetBrains Mono\',monospace">' +
+          subsAktif.length + ' subtopik</span>' +
+      '</label>' +
+    '</div>';
 
-  // Render subtopik (dari tajuk aktif sahaja — dalam satu paparan grid)
-  // Kalau nak support semua tajuk, loop S.tajuk
-  allGroups.forEach(function(grp) {
-    var subs = grp.subs || [];
-    // Tajuk parent row
+  // Tajuk parent header
+  var tajukKey = encodeURIComponent(S.aktifTajuk);
+  tree.innerHTML +=
+    '<div style="padding:9px 14px 6px;border-bottom:1px solid #f3f4f6;background:#fafafa">' +
+      '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">' +
+        '<input type="checkbox" class="cb-tajuk" data-tajuk="' + tajukKey + '" ' +
+          'onchange="toggleTajuk(this)" checked ' +
+          'style="width:15px;height:15px;accent-color:#7c4dff;cursor:pointer">' +
+        '<span style="font-size:12.5px;font-weight:800;color:#374151">📂 ' + S.aktifTajuk + '</span>' +
+        '<span style="margin-left:auto;font-size:10px;font-weight:700;color:#9ca3af;font-family:\'JetBrains Mono\',monospace">' +
+          subsAktif.length + ' subtopik</span>' +
+      '</label>' +
+    '</div>';
+
+  // Subtopik children — semua auto-check
+  subsAktif.forEach(function(s) {
     tree.innerHTML +=
-      '<div style="padding:9px 14px 6px;border-bottom:1px solid #f3f4f6">' +
+      '<div style="padding:7px 14px 7px 44px;border-bottom:1px solid #f9fafb" class="sub-row" data-tajuk="' + tajukKey + '">' +
         '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">' +
-          '<input type="checkbox" class="cb-tajuk" data-tajuk="' + encodeURIComponent(grp.label) + '" ' +
-            'onchange="toggleTajuk(this)" ' +
-            'style="width:15px;height:15px;accent-color:#7c4dff;cursor:pointer">' +
-          '<span style="font-size:12.5px;font-weight:800;color:#374151">📂 ' + grp.label + '</span>' +
-          '<span style="margin-left:auto;font-size:10px;font-weight:700;color:#9ca3af;font-family:\'JetBrains Mono\',monospace">' +
-            subs.length + ' subtopik</span>' +
+          '<input type="checkbox" class="cb-sub" data-topik-id="' + s.id + '" data-tajuk="' + tajukKey + '" ' +
+            'onchange="onSubChange()" checked ' +
+            'style="width:14px;height:14px;accent-color:#1e6fe8;cursor:pointer">' +
+          '<span style="font-size:12px;color:#1a1f3a">' + (s.nama || s.subtopik || '') + '</span>' +
+          '<span style="margin-left:auto;font-size:10px;color:#9ca3af;font-family:\'JetBrains Mono\',monospace">' + (s.kod || '') + '</span>' +
         '</label>' +
       '</div>';
-
-    // Subtopik children
-    subs.forEach(function(s) {
-      tree.innerHTML +=
-        '<div style="padding:6px 14px 6px 42px;border-bottom:1px solid #f9fafb" class="sub-row" data-tajuk="' + encodeURIComponent(grp.label) + '">' +
-          '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">' +
-            '<input type="checkbox" class="cb-sub" data-topik-id="' + s.id + '" data-tajuk="' + encodeURIComponent(grp.label) + '" ' +
-              'onchange="onSubChange()" ' +
-              'style="width:14px;height:14px;accent-color:#1e6fe8;cursor:pointer">' +
-            '<span style="font-size:12px;color:#1a1f3a">' + (s.nama || s.subtopik || '') + '</span>' +
-            '<span style="margin-left:auto;font-size:10px;color:#9ca3af;font-family:\'JetBrains Mono\',monospace">' + (s.kod||'') + '</span>' +
-          '</label>' +
-        '</div>';
-    });
   });
 
   kemaskiniFillSummary();
