@@ -767,7 +767,10 @@ function onKelasChange() {
     checkDone();
   });
   jsonp({ action: 'getTopik', subjek: S.aktifKelas.subjek, tahun: S.aktifKelas.tahun }, function(err, d) {
-    if (!err && d.status === 'ok') S.topik = d.data;
+    if (!err && d.status === 'ok') {
+      S.topik = d.data;
+      if (d.data.length > 0) console.log('[DEBUG] Topik field contoh:', JSON.stringify(d.data[0]));
+    }
     checkDone();
   });
 }
@@ -783,7 +786,7 @@ function paparTajuk() {
   // Kumpul tajuk unik & kira subtopik
   var tajukMap = {};
   S.topik.forEach(function(t) {
-    var key = t.tajuk || '(Tiada Tajuk)';
+    var key = (t.tajuk !== null && t.tajuk !== undefined && t.tajuk !== '') ? t.tajuk : '(Tiada Tajuk)';
     if (!tajukMap[key]) tajukMap[key] = { label: key, subs: [] };
     tajukMap[key].subs.push(t);
   });
@@ -826,7 +829,7 @@ function _pilihTajukTerus(tajukLabel) {
   wizardSet(3, 'active', 'Input & Simpan');
 
   // Subtopik dalam tajuk ini
-  var subs = S.topik.filter(function(t){ return (t.tajuk||'(Tiada Tajuk)') === tajukLabel; });
+  var subs = S.topik.filter(function(t){ var tj = (t.tajuk !== null && t.tajuk !== undefined && t.tajuk !== '') ? t.tajuk : '(Tiada Tajuk)'; return tj === tajukLabel; });
   if (!subs.length) { showToast('Tiada subtopik dalam tajuk ini', 'error'); return; }
   if (!S.murid || S.murid.length === 0) {
     showToast('Tiada murid dalam kelas ini. Sila import murid dahulu.', 'error'); return;
@@ -859,7 +862,7 @@ function renderGrid(subs) {
   tr += '<th class="col-nama">Nama Murid</th>';
   subs.forEach(function(s) {
     tr += '<th class="col-sub"><div class="sub-header-wrap">' +
-      '<div class="sub-header-kod">' + (s.kod||'') + '</div>' +
+      '<div class="sub-header-kod">' + (s.kodDSKP||'') + '</div>' +
       '<div class="sub-header-nama">' + (s.nama||s.subtopik||'') + '</div>' +
       '</div></th>';
   });
@@ -893,7 +896,7 @@ function renderGridRows(subs) {
   var tajukMap = {};
   var tajukOrder = [];
   subs.forEach(function(s) {
-    var t = s.tajuk || S.aktifTajuk || '—';
+    var t = (s.tajuk !== null && s.tajuk !== undefined && s.tajuk !== '') ? s.tajuk : (S.aktifTajuk || '—');
     if (!tajukMap[t]) { tajukMap[t] = []; tajukOrder.push(t); }
     tajukMap[t].push(s);
   });
@@ -999,7 +1002,8 @@ function bukaFillModal() {
 
   // Hanya ambil subtopik tajuk yang sedang dipilih
   var subsAktif = S.topik.filter(function(t) {
-    return (t.tajuk || '(Tiada Tajuk)') === S.aktifTajuk;
+    var tj = (t.tajuk !== null && t.tajuk !== undefined && t.tajuk !== '') ? t.tajuk : '(Tiada Tajuk)';
+    return tj === S.aktifTajuk;
   });
 
   var tree = document.getElementById('fillSubtopikTree');
@@ -1040,7 +1044,7 @@ function bukaFillModal() {
             'onchange="onSubChange()" checked ' +
             'style="width:14px;height:14px;accent-color:#1e6fe8;cursor:pointer">' +
           '<span style="font-size:12px;color:#1a1f3a">' + (s.nama || s.subtopik || '') + '</span>' +
-          '<span style="margin-left:auto;font-size:10px;color:#9ca3af;font-family:\'JetBrains Mono\',monospace">' + (s.kod || '') + '</span>' +
+          '<span style="margin-left:auto;font-size:10px;color:#9ca3af;font-family:\'JetBrains Mono\',monospace">' + (s.kodDSKP || '') + '</span>' +
         '</label>' +
       '</div>';
   });
