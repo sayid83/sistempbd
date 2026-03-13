@@ -610,12 +610,20 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 
 <!-- MODAL ISI SEMUA -->
 <div class="modal-backdrop" id="modalFill">
-  <div class="modal">
+  <div class="modal" style="max-width:460px">
     <div class="modal-title">⚡ Isi TP Semua Murid</div>
-    <p>Tetapkan semua murid dalam tajuk ini kepada TP yang sama. Rekod sedia ada akan <strong>ditimpa</strong>.</p>
-    <div style="margin-bottom:20px">
-      <div class="sel-label" style="margin-bottom:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280">Pilih TP</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap" id="fillTpBtns">
+    <p style="font-size:13px;color:#4b5563;margin-bottom:18px;line-height:1.6">Tetapkan TP untuk semua murid. Pilih tajuk yang hendak diisi dan nilai TP. Rekod sedia ada akan <strong>ditimpa</strong>.</p>
+
+    <!-- Bahagian 1: Pilih Tajuk -->
+    <div style="margin-bottom:18px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:8px">① Pilih Tajuk Yang Hendak Diisi</div>
+      <div id="fillTajukList" style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;padding-right:2px"></div>
+    </div>
+
+    <!-- Bahagian 2: Pilih TP -->
+    <div style="margin-bottom:18px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:8px">② Pilih Tahap Penguasaan (TP)</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap" id="fillTpBtns">
         <button onclick="setFillTp(1)" class="tp-chip" data-tp="1"><div class="tp-chip-dot"></div>TP 1</button>
         <button onclick="setFillTp(2)" class="tp-chip" data-tp="2"><div class="tp-chip-dot"></div>TP 2</button>
         <button onclick="setFillTp(3)" class="tp-chip" data-tp="3"><div class="tp-chip-dot"></div>TP 3</button>
@@ -623,13 +631,16 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
         <button onclick="setFillTp(5)" class="tp-chip" data-tp="5"><div class="tp-chip-dot"></div>TP 5</button>
         <button onclick="setFillTp(6)" class="tp-chip" data-tp="6"><div class="tp-chip-dot"></div>TP 6</button>
       </div>
-      <div style="margin-top:10px;padding:8px 12px;background:#f1f5f9;border-radius:8px;font-size:12px;color:#374151">
-        TP dipilih: <strong id="fillTpDisplay" style="color:#1e6fe8">—</strong>
-      </div>
     </div>
+
+    <!-- Ringkasan -->
+    <div style="padding:10px 14px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;color:#374151;margin-bottom:20px">
+      Akan isi: <strong id="fillSummaryTajuk" style="color:#1e6fe8">—</strong> dengan <strong id="fillSummaryTp" style="color:#1e6fe8">—</strong>
+    </div>
+
     <div class="modal-actions">
       <button class="modal-cancel" onclick="tutupModal('modalFill')">Batal</button>
-      <button class="modal-confirm" onclick="jalanFillSemua()">⚡ Isi Semua</button>
+      <button class="modal-confirm" id="btnFillConfirm" onclick="jalanFillSemua()">⚡ Isi Sekarang</button>
     </div>
   </div>
 </div>
@@ -975,28 +986,133 @@ function kemaskiniDirtyCount() {
 // ISI SEMUA
 // ═════════════════════════════════════════════════════
 function bukaFillModal() {
-  S.fillTp = null;
-  document.getElementById('fillTpDisplay').textContent = '—';
+  S.fillTp    = null;
+  S.fillTajuk = null; // null = semua, atau string nama tajuk
+
+  // Bina senarai tajuk dalam grid semasa
+  var tajukDlmGrid = {};
+  var tajukOrder   = [];
+  S.topik.filter(function(t){ return (t.tajuk||'(Tiada Tajuk)') === S.aktifTajuk; })
+    .forEach(function(s) {
+      var key = s.tajuk || S.aktifTajuk;
+      if (!tajukDlmGrid[key]) { tajukDlmGrid[key] = 0; tajukOrder.push(key); }
+      tajukDlmGrid[key]++;
+    });
+
+  // Kira berapa banyak tajuk berbeza tersedia (dari S.tajuk)
+  var allTajuk = S.tajuk || [];
+
+  var list = document.getElementById('fillTajukList');
+  list.innerHTML = '';
+
+  // Option: Semua Tajuk (dari semua yang ada dalam S.tajuk)
+  list.innerHTML += buildTajukOption('__semua__', '✦ Semua Tajuk', S.topik.length + ' subtopik', true);
+
+  // Option: Tajuk aktif semasa
+  if (S.aktifTajuk) {
+    var subCount = S.topik.filter(function(t){ return (t.tajuk||'') === S.aktifTajuk; }).length;
+    list.innerHTML += buildTajukOption('__aktif__', '● ' + S.aktifTajuk, subCount + ' subtopik (tajuk semasa)', false);
+  }
+
+  // Option: Tajuk-tajuk lain
+  allTajuk.forEach(function(tj) {
+    if (tj.label !== S.aktifTajuk) {
+      list.innerHTML += buildTajukOption(tj.label, tj.label, tj.subs.length + ' subtopik', false);
+    }
+  });
+
+  // Reset TP chips
+  document.querySelectorAll('#fillTpBtns .tp-chip').forEach(function(c) { c.style.outline = 'none'; });
+  kemaskiniFillSummary();
+
   document.getElementById('modalFill').classList.add('show');
+}
+
+function buildTajukOption(value, label, sub, checked) {
+  return '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid ' +
+    (checked ? '#bfdbfe' : '#e5e7eb') + ';border-radius:8px;cursor:pointer;background:' +
+    (checked ? '#eff6ff' : '#fff') + ';transition:all .15s" ' +
+    'onclick="pilihFillTajuk(this, \'' + value.replace(/'/g, "\\'") + '\')">' +
+    '<div style="width:16px;height:16px;border-radius:50%;border:2px solid ' +
+    (checked ? '#1e6fe8' : '#d1d5db') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0" id="radio_' + value.replace(/[^a-z0-9]/gi,'_') + '">' +
+    (checked ? '<div style="width:8px;height:8px;border-radius:50%;background:#1e6fe8"></div>' : '') +
+    '</div>' +
+    '<div><div style="font-size:13px;font-weight:700;color:#1a1f3a">' + label + '</div>' +
+    '<div style="font-size:11px;color:#9ca3af;margin-top:1px">' + sub + '</div></div>' +
+    '</label>';
+}
+
+function pilihFillTajuk(el, val) {
+  S.fillTajuk = val;
+  // Kemaskini visual semua option
+  document.querySelectorAll('#fillTajukList label').forEach(function(l) {
+    var isThis = l === el;
+    l.style.background     = isThis ? '#eff6ff' : '#fff';
+    l.style.borderColor    = isThis ? '#bfdbfe' : '#e5e7eb';
+    var radio = l.querySelector('div > div');
+    var outer = l.querySelector('div');
+    outer.style.borderColor = isThis ? '#1e6fe8' : '#d1d5db';
+    outer.innerHTML = isThis ? '<div style="width:8px;height:8px;border-radius:50%;background:#1e6fe8"></div>' : '';
+  });
+  kemaskiniFillSummary();
 }
 
 function setFillTp(tp) {
   S.fillTp = tp;
-  document.getElementById('fillTpDisplay').textContent = tp > 0 ? 'TP ' + tp : 'Kosong';
-  // Highlight chip terpilih
   document.querySelectorAll('#fillTpBtns .tp-chip').forEach(function(c) {
     c.style.outline = parseInt(c.getAttribute('data-tp')) === tp ? '2px solid #1e6fe8' : 'none';
+    c.style.outlineOffset = '2px';
   });
+  kemaskiniFillSummary();
+}
+
+function kemaskiniFillSummary() {
+  var tEl = document.getElementById('fillSummaryTajuk');
+  var pEl = document.getElementById('fillSummaryTp');
+  if (!tEl || !pEl) return;
+
+  var tajukLabel = '—';
+  if      (S.fillTajuk === '__semua__') tajukLabel = 'Semua Tajuk (' + S.topik.length + ' subtopik)';
+  else if (S.fillTajuk === '__aktif__') tajukLabel = S.aktifTajuk + ' (tajuk semasa)';
+  else if (S.fillTajuk)                tajukLabel = S.fillTajuk;
+
+  tEl.textContent = tajukLabel;
+  pEl.textContent = S.fillTp !== null ? 'TP ' + S.fillTp : '—';
 }
 
 function jalanFillSemua() {
-  if (S.fillTp === null) { showToast('Sila pilih TP dahulu', 'error'); return; }
+  if (S.fillTp === null)    { showToast('Sila pilih TP dahulu', 'error'); return; }
+  if (!S.fillTajuk)         { showToast('Sila pilih tajuk dahulu', 'error'); return; }
   tutupModal('modalFill');
-  // Set semua btn dalam grid
+
+  // Tentukan topikIds yang perlu diisi
+  var targetTopikIds = {};
+  if (S.fillTajuk === '__semua__') {
+    // Semua subtopik dalam grid semasa
+    document.querySelectorAll('.tp-btn').forEach(function(b) {
+      targetTopikIds[b.getAttribute('data-topik')] = true;
+    });
+  } else if (S.fillTajuk === '__aktif__') {
+    // Subtopik tajuk aktif sahaja
+    S.topik.filter(function(t){ return (t.tajuk||'') === S.aktifTajuk; })
+      .forEach(function(t){ targetTopikIds[t.id] = true; });
+  } else {
+    // Tajuk spesifik yang dipilih
+    S.topik.filter(function(t){ return (t.tajuk||'') === S.fillTajuk; })
+      .forEach(function(t){ targetTopikIds[t.id] = true; });
+  }
+
+  var count = 0;
   document.querySelectorAll('.tp-btn').forEach(function(btn) {
-    setTP(btn, S.fillTp);
+    if (targetTopikIds[btn.getAttribute('data-topik')]) {
+      setTP(btn, S.fillTp);
+      count++;
+    }
   });
-  showToast('Semua murid ditetapkan TP ' + S.fillTp, 'info');
+
+  var tajukLabel = S.fillTajuk === '__semua__' ? 'Semua Tajuk' :
+                   S.fillTajuk === '__aktif__' ? S.aktifTajuk : S.fillTajuk;
+  showToast('✅ ' + count + ' cell ditetapkan TP ' + S.fillTp + ' — ' + tajukLabel, 'success');
 }
 
 function clearGrid() {
