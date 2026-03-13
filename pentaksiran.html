@@ -769,7 +769,6 @@ function onKelasChange() {
   jsonp({ action: 'getTopik', subjek: S.aktifKelas.subjek, tahun: S.aktifKelas.tahun }, function(err, d) {
     if (!err && d.status === 'ok') {
       S.topik = d.data;
-      if (d.data.length > 0) console.log('[DEBUG] Topik field contoh:', JSON.stringify(d.data[0]));
     }
     checkDone();
   });
@@ -816,8 +815,8 @@ function pilihTajuk(tajukLabel) {
 }
 
 function _pilihTajukTerus(tajukLabel) {
-  S.aktifTajuk = tajukLabel;
   resetGrid();
+  S.aktifTajuk = tajukLabel;
 
   // Update pill active state
   document.querySelectorAll('.tajuk-pill').forEach(function(p) {
@@ -1201,7 +1200,6 @@ function resetGrid() {
   S.tpData = {};
   S.tpAsal = {};
   S.dirtyCount = 0;
-  S.aktifTajuk = null;
   document.getElementById('tpHead').innerHTML = '';
   document.getElementById('tpBody').innerHTML = '';
   document.getElementById('unsavedBadge').style.display = 'none';
@@ -1216,7 +1214,7 @@ function resetToStep1() {
   document.getElementById('gridArea').style.display  = 'none';
   document.getElementById('saveBar').style.display   = 'none';
   document.getElementById('placeholder').style.display = 'block';
-  S.aktifKelas = null;
+  S.aktifKelas = null; S.aktifTajuk = null;
   S.murid = []; S.topik = []; S.tajuk = [];
   wizardSet(1, 'active', 'Pilih Kelas');
   wizardSet(2, '',       'Pilih Tajuk');
