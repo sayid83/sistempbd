@@ -632,10 +632,10 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .form-input, .form-select {
   width: 100%;
   padding: 11px 14px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--glass-border);
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
   border-radius: var(--radius-sm);
-  color: #fff;
+  color: #1a1f3a;
   font-size: 14px;
   font-family: 'Plus Jakarta Sans', sans-serif;
   transition: border-color 0.2s;
@@ -643,9 +643,10 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 }
 .form-input:focus, .form-select:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: #1e6fe8;
+  box-shadow: 0 0 0 3px rgba(30,111,232,0.1);
 }
-.form-select option { background: #131929; color: #fff; }
+.form-select option { background: #ffffff; color: #1a1f3a; }
 .modal-actions {
   display: flex;
   gap: 10px;
@@ -654,15 +655,15 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .btn-cancel {
   flex: 1;
   padding: 11px;
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
   border-radius: var(--radius-sm);
-  color: var(--text-secondary);
+  color: #4b5563;
   font-size: 13px;
   font-weight: 600;
   transition: all 0.2s;
 }
-.btn-cancel:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.btn-cancel:hover { background: #e5e7eb; color: #1a1f3a; }
 .btn-save {
   flex: 2;
   padding: 11px;
