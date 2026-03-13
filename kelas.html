@@ -588,6 +588,15 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
       <div class="preview-warn" id="previewWarn"></div>
     </div>
 
+    <div id="importProgressWrap" style="display:none;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em">Kemajuan Import</span>
+        <span id="importProgressTxt" style="font-size:11px;font-weight:700;color:#1e6fe8;font-family:'JetBrains Mono',monospace">0 / 0 murid</span>
+      </div>
+      <div style="background:#e5e7eb;border-radius:20px;height:8px;overflow:hidden">
+        <div id="importProgressBar" style="height:100%;border-radius:20px;background:linear-gradient(90deg,#1e6fe8,#7c4dff);width:0%;transition:width .3s"></div>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="tutupModal('modalImport')">Batal</button>
       <button class="btn-save" id="btnImport" onclick="jalanImport()" disabled>📥 Import Murid</button>
@@ -1054,23 +1063,61 @@ function jalanImport() {
   if (!state.importData || state.importData.length === 0) return;
   if (!state.aktifKelasId) return;
 
-  var btn = document.getElementById('btnImport');
-  btn.disabled = true;
-  btn.textContent = '⏳ Mengimport...';
+  var btn  = document.getElementById('btnImport');
+  var SAIZ = 50; // max murid per batch (elak URL terlalu panjang)
+  var list = state.importData;
+  var total   = list.length;
+  var batches = [];
+  for (var i = 0; i < total; i += SAIZ) batches.push(list.slice(i, i + SAIZ));
 
-  var dataStr = encodeURIComponent(JSON.stringify(state.importData));
-  jsonp({ action: 'importMurid', kelasId: state.aktifKelasId, data: dataStr }, function(err, data) {
-    btn.disabled = false;
-    if (err || data.status !== 'ok') {
-      btn.textContent = '📥 Import Murid';
-      showToast('Gagal import: ' + (data ? data.message : err.message), 'error');
+  btn.disabled = true;
+  btn.textContent = '⏳ 0 / ' + total + ' diimport...';
+
+  // Tunjuk progress bar dalam modal
+  var progWrap = document.getElementById('importProgressWrap');
+  var progBar  = document.getElementById('importProgressBar');
+  var progTxt  = document.getElementById('importProgressTxt');
+  if (progWrap) { progWrap.style.display = 'block'; }
+
+  var doneCount = 0;
+  var batchIdx  = 0;
+  var errors    = [];
+
+  function hantarBatch() {
+    if (batchIdx >= batches.length) {
+      // Selesai semua batch
+      btn.disabled = false;
+      btn.textContent = '📥 Import ' + total + ' Murid';
+      if (errors.length > 0) {
+        showToast('Sebahagian gagal: ' + errors.join(', '), 'error');
+      } else {
+        tutupModal('modalImport');
+        showToast('✅ ' + doneCount + ' murid berjaya diimport!', 'success');
+        muatMurid(state.aktifKelasId);
+        muatKelas();
+      }
+      if (progWrap) progWrap.style.display = 'none';
       return;
     }
-    tutupModal('modalImport');
-    showToast(data.message + ' ✅', 'success');
-    muatMurid(state.aktifKelasId);
-    muatKelas(); // kemaskini kiraan
-  });
+
+    var batch   = batches[batchIdx];
+    var dataStr = encodeURIComponent(JSON.stringify(batch));
+    jsonp({ action: 'importMurid', kelasId: state.aktifKelasId, data: dataStr }, function(err, data) {
+      if (err || !data || data.status !== 'ok') {
+        errors.push('Batch ' + (batchIdx + 1));
+      } else {
+        doneCount += batch.length;
+      }
+      batchIdx++;
+      var pct = Math.round((batchIdx / batches.length) * 100);
+      if (progBar)  progBar.style.width  = pct + '%';
+      if (progTxt)  progTxt.textContent  = doneCount + ' / ' + total + ' murid';
+      btn.textContent = '⏳ ' + doneCount + ' / ' + total + ' diimport...';
+      hantarBatch(); // hantar batch seterusnya
+    });
+  }
+
+  hantarBatch();
 }
 
 // ═══════════════════════════════════════════════════════
