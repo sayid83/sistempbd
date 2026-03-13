@@ -112,7 +112,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .overlay.show { display: block; }
 
 /* ── MAIN ── */
-.main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+.main { margin-left: var(--sidebar-w); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 .topbar {
   height: var(--topbar-h);
   background: #ffffff; border-bottom: 1px solid #e5e7eb;
@@ -129,7 +129,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .menu-btn:hover { background: #e5e7eb; color: #1a1f3a; }
 .topbar-title { font-size: 15px; font-weight: 700; color: #1a1f3a; }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.page-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+.page-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 18px; min-height: 0; overflow-y: auto; }
 
 /* ── STEP WIZARD BAR ── */
 .wizard-bar {
@@ -224,7 +224,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   border-radius: var(--radius);
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   display: none; flex-direction: column; overflow: hidden;
-  flex: 1; min-height: 400px;
+  flex: 1; min-height: 0; height: 0;
 }
 .grid-toolbar {
   padding: 14px 20px; border-bottom: 1px solid #f3f4f6;
@@ -261,7 +261,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .tp-chip[data-tp="6"] .tp-chip-dot { background: var(--tp6-dot); }
 
 /* Scroll wrapper for grid */
-.grid-scroll { flex: 1; overflow: auto; position: relative; }
+.grid-scroll { flex: 1; overflow: auto; position: relative; min-height: 0; }
 
 /* THE GRID TABLE */
 .tp-table {
@@ -282,6 +282,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   letter-spacing: 0.08em; color: #6b7280;
   position: sticky; top: 0; z-index: 10;
   border-bottom: 2px solid #e5e7eb;
+  box-shadow: 0 2px 0 #e5e7eb;
 }
 .tp-table th.col-no, .tp-table th.col-nama {
   position: sticky; z-index: 20;
@@ -311,15 +312,25 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 
 /* Sub-header row for tajuk grouping */
 .tp-table .tajuk-header th {
-  background: #f1f5f9; color: #374151; font-size: 11px;
+  background: linear-gradient(135deg, #1e3a5f 0%, #1e1b4b 100%);
+  color: #e0f2fe; font-size: 11.5px;
   font-weight: 800; text-align: left; letter-spacing: 0;
-  text-transform: none; padding: 9px 14px;
-  border-top: 2px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;
+  text-transform: none; padding: 10px 14px;
+  border-top: none; border-bottom: 2px solid #1e6fe8;
   position: sticky; top: 39px; z-index: 10;
+  box-shadow: 0 2px 0 #1e6fe8;
 }
 .tp-table .tajuk-header th.col-no,
 .tp-table .tajuk-header th.col-nama {
   z-index: 20;
+}
+.tajuk-header-icon { margin-right: 6px; font-size: 13px; }
+.tajuk-header-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.18); color: #bfdbfe;
+  border-radius: 10px; padding: 1px 8px;
+  font-size: 10px; font-weight: 800; margin-left: 8px;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 /* ── TP CELL BUTTON ── */
@@ -841,6 +852,18 @@ function renderGrid(subs) {
   tr += '</tr>';
   head.innerHTML = tr;
 
+  // Set top tajuk-header secara dinamik selepas thead render
+  setTimeout(function() {
+    var theadH = document.getElementById('tpHead').offsetHeight || 39;
+    var style = document.getElementById('tajukHeaderStyle');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'tajukHeaderStyle';
+      document.head.appendChild(style);
+    }
+    style.textContent = '.tp-table .tajuk-header th { top: ' + theadH + 'px !important; }';
+  }, 50);
+
   // TBODY — loading dulu
   var body = document.getElementById('tpBody');
   body.innerHTML = '<tr class="loading-row"><td colspan="' + (subs.length + 2) + '">' +
@@ -851,6 +874,19 @@ function renderGrid(subs) {
 function renderGridRows(subs) {
   var body = document.getElementById('tpBody');
   var rows = '';
+
+  // Kumpul by tajuk — kalau ada berbilang tajuk dalam subs (mode semua)
+  var tajukMap = {};
+  var tajukOrder = [];
+  subs.forEach(function(s) {
+    var t = s.tajuk || S.aktifTajuk || '—';
+    if (!tajukMap[t]) { tajukMap[t] = []; tajukOrder.push(t); }
+    tajukMap[t].push(s);
+  });
+
+  // Untuk setiap murid, render satu row sahaja
+  // Tajuk-header row hanya tunjuk sekali di atas kumpulan (group separator in thead via sticky)
+  // Dalam mode satu tajuk — terus render rows
   S.murid.forEach(function(m) {
     rows += '<tr>';
     rows += '<td class="col-no">' + m.no + '</td>';
@@ -867,6 +903,7 @@ function renderGridRows(subs) {
     });
     rows += '</tr>';
   });
+
   body.innerHTML = rows;
   kemaskiniDirtyCount();
 }
