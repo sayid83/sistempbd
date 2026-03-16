@@ -49,7 +49,10 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
 .menu-btn:hover{background:#e5e7eb;color:#1a1f3a}
 .topbar-title{font-size:15px;font-weight:700;color:#1a1f3a}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.page-content{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:18px;min-height:0}
+.page-content{flex:1;overflow-y:auto;padding:24px;display:block;min-height:0}
+.page-content > *{margin-bottom:18px}
+.page-content > *:last-child{margin-bottom:0}
+.chart-wrap{position:relative;height:220px;width:100%}
 
 /* SELECTOR BAR */
 .selector-bar{background:#fff;border:1px solid #e5e7eb;border-radius:var(--radius);padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,.05);display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
@@ -443,7 +446,7 @@ function renderLaporanKelas(d){
   // Charts row
   html+='<div class="charts-row">';
   // Chart 1: Taburan TP keseluruhan
-  html+='<div class="card"><div class="card-header"><div class="card-title">Taburan TP Keseluruhan</div></div><canvas id="chartDist" height="200"></canvas></div>';
+  html+='<div class="card"><div class="card-header"><div class="card-title">Taburan TP Keseluruhan</div></div><div class="chart-wrap"><canvas id="chartDist"></canvas></div></div>';
   // Compact mini grid: purata per topik
   html+='<div class="card"><div class="card-header"><div class="card-title">Purata TP per Topik</div></div><div id="miniTopikGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px"></div></div>';
   html+='</div>';
