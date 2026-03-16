@@ -634,7 +634,9 @@ function renderLaporanMurid(d,forPrint){
     var grp=tajukMap[key];
     // Group header
     html+='<tr><td colspan="5" style="padding:0"><div class="topik-group-title">📂 '+key+
-      ' <span style="font-weight:500;color:#6b7280;font-size:11px">('+grp.dinilai+'/'+grp.jumlah+' dinilai · Purata: '+grp.purata+')</span></div></td></tr>';
+      ' <span style="font-weight:500;color:#6b7280;font-size:11px">('+grp.dinilai+'/'+grp.jumlah+' dinilai)</span>'+
+      (grp.dinilai>0 ? ' <span style="font-weight:700;margin-left:6px">'+purataBar(parseFloat(grp.purata))+'</span>' : '')+
+      '</div></td></tr>';
     grp.items.forEach(function(t){
       var status=t.tp===0?'<span style="color:#9ca3af;font-size:11px">— Belum dinilai</span>':
                  t.tp<4?'<span style="color:#ef4444;font-size:11px;font-weight:600">⚠️ Perlu perhatian</span>':
@@ -644,7 +646,7 @@ function renderLaporanMurid(d,forPrint){
         '<td style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#9ca3af">'+t.kodDSKP+'</td>'+
         '<td style="font-weight:500">'+t.nama+'</td>'+
         '<td class="center"><span class="tp-badge tp'+t.tp+'">'+(t.tp>0?'TP '+t.tp:'—')+'</span></td>'+
-        '<td>'+purataBar(parseFloat(grp.purata))+'</td>'+
+        '<td>'+(t.tp>0 ? purataBar(t.tp) : '<span style="color:#e5e7eb;font-size:11px">—</span>')+'</td>'+
         '<td>'+status+'</td>'+
       '</tr>';
     });
