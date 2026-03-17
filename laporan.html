@@ -902,16 +902,10 @@ function eksportExcelMurid(){
 // ═══════════════════════════════════════════
 function muatBorangRasmi(){
   updateTopbarActions();
-  // Muat topik untuk kelas ini
-  var subjek=S.aktifKelas.subjek;
-  var tahun=S.aktifKelas.tahun;
-
-  // Ambil tetapan sekolah dari localStorage
   var cfg=getBorangCfg();
-
   var html='';
 
-  // Setup panel
+  // Setup panel — tanpa pilih tajuk
   html+='<div class="borang-setup no-print">';
   html+='<div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:14px">⚙️ Tetapan Borang</div>';
   html+='<div class="borang-setup-grid">';
@@ -921,53 +915,16 @@ function muatBorangRasmi(){
   html+='<div class="borang-input-group"><label>Tahun Akademik</label><input class="borang-input" id="bTahunAkademik" value="'+cfg.tahunAkademik+'" oninput="saveCfg()" placeholder="2025/2026"></div>';
   html+='<div class="borang-input-group"><label>Nama Mata Pelajaran</label><input class="borang-input" id="bMataPelajaran" value="'+cfg.mataPelajaran+'" oninput="saveCfg()" placeholder="SAINS / MATEMATIK"></div>';
   html+='<div class="borang-input-group"><label>Jawatan</label><input class="borang-input" id="bJawatan" value="'+cfg.jawatan+'" oninput="saveCfg()" placeholder="GURU MATA PELAJARAN"></div>';
-  html+='</div>';
-  html+='<div style="margin-top:14px;font-size:12px;font-weight:700;color:#374151">Pilih Unit/Tajuk:</div>';
-  html+='<div class="borang-tajuk-sel" id="borangTajukSel">Memuatkan tajuk...</div>';
-  html+='</div>';
+  html+='</div></div>';
 
-  // Preview area
-  html+='<div class="borang-preview-wrap"><div class="borang-a4" id="borangA4"><div style="text-align:center;color:#9ca3af;padding:40px">Pilih tajuk untuk jana borang</div></div></div>';
+  // Preview area — loading
+  html+='<div class="borang-preview-wrap"><div class="borang-a4" id="borangA4"><div style="text-align:center;color:#9ca3af;padding:40px"><div class="spinner" style="margin:0 auto 10px"></div>Memuatkan data...</div></div></div>';
 
   document.getElementById('contentArea').innerHTML=html;
 
-  // Muat tajuk
-  jsonp({action:'getTopik',subjek:subjek,tahun:String(tahun)},function(err,d){
-    if(err||d.status!=='ok') return;
-    S.borangTopik=d.data;
-    // Kumpul tajuk unik
-    var tajukMap={};var tajukOrder=[];
-    d.data.forEach(function(t){
-      var k=t.tajuk||'(Tiada)';
-      if(!tajukMap[k]){tajukMap[k]={label:k,subs:[]};tajukOrder.push(k);}
-      tajukMap[k].subs.push(t);
-    });
-    S.borangTajuk=tajukOrder.map(function(k){return tajukMap[k];});
-    var pills=document.getElementById('borangTajukSel');
-    if(!pills) return;
-    pills.innerHTML=S.borangTajuk.map(function(t,i){
-      return '<button class="borang-tajuk-pill" onclick="pilihBorangTajuk('+i+',this)">'+t.label+'</button>';
-    }).join('');
-  });
-}
-
-function pilihBorangTajuk(idx,el){
-  document.querySelectorAll('.borang-tajuk-pill').forEach(function(p){p.classList.remove('active');});
-  el.classList.add('active');
-  S.borangAktifTajukIdx=idx;
-  janaBorang(idx);
-}
-
-function janaBorang(idx){
-  var grp=S.borangTajuk[idx];
-  var cfg=getBorangCfg();
-  var kelasNama=S.aktifKelas.nama;
-  var subjek=S.aktifKelas.subjek;
-  var tahun=S.aktifKelas.tahun;
-
-  // Muat murid & TP
+  // Terus muat data tanpa tunggu tajuk
   var done=0;
-  function check(){if(++done===2) renderBorang(grp,cfg);}
+  function check(){if(++done===2) renderBorang(cfg);}
 
   if(!S.murid||S.murid.length===0){
     jsonp({action:'getMurid',kelasId:S.aktifKelas.id},function(err,d){
@@ -987,19 +944,20 @@ function janaBorang(idx){
   });
 }
 
-function renderBorang(grp,cfg){
+function renderBorang(cfg){
   var murid=S.murid||[];
-  var subs=grp.subs||[];
   var kelasNama=S.aktifKelas.nama;
+  var subjek=S.aktifKelas.subjek;
+  var tahun=S.aktifKelas.tahun;
 
-  // Kira TP murid — purata subtopik dalam tajuk ini
-  function tpMurid(m,col){
-    if(col==='pthn') return ''; // kosong — input manual
-    var sum=0;var cnt=0;
-    subs.forEach(function(s){
-      var k=m.id+'_'+s.id;
-      var v=S.borangTP[k]||0;
-      if(v>0){sum+=v;cnt++;}
+  // Kira purata TP keseluruhan untuk setiap murid (semua topik)
+  function purataTP(m){
+    var sum=0; var cnt=0;
+    Object.keys(S.borangTP).forEach(function(k){
+      if(k.indexOf(m.id+'_')===0){
+        var v=S.borangTP[k]||0;
+        if(v>0){sum+=v;cnt++;}
+      }
     });
     if(cnt===0) return '';
     return Math.round(sum/cnt);
@@ -1017,7 +975,7 @@ function renderBorang(grp,cfg){
   html+='</div>';
 
   // Judul
-  html+='<div class="borang-judul">AKADEMIK '+(cfg.tahunAkademik||new Date().getFullYear())+'/'+(parseInt(cfg.tahunAkademik||new Date().getFullYear())+1)+'</div>';
+  html+='<div class="borang-judul">AKADEMIK '+(cfg.tahunAkademik||new Date().getFullYear())+'</div>';
 
   // Info guru & kelas
   html+='<table class="borang-info-table">';
@@ -1025,7 +983,7 @@ function renderBorang(grp,cfg){
   html+='<td style="width:20px"></td>';
   html+='<td class="lbl">Mata Pelajaran</td><td class="sep">:</td><td class="val">'+(cfg.mataPelajaran||subjek+' TAHUN '+tahun)+'</td></tr>';
   html+='<tr><td class="lbl">Kelas</td><td class="sep">:</td><td class="val">'+kelasNama+'</td>';
-  html+='<td></td><td class="lbl">Unit/Tajuk</td><td class="sep">:</td><td class="val">'+grp.label+'</td></tr>';
+  html+='<td></td><td class="lbl">Jawatan</td><td class="sep">:</td><td class="val">'+(cfg.jawatan||'')+'</td></tr>';
   html+='</table>';
 
   // Jadual murid
@@ -1037,46 +995,28 @@ function renderBorang(grp,cfg){
   html+='<tr><th class="tp-cell">PERTENGAHAN<br>TAHUN</th><th class="tp-cell">AKHIR<br>TAHUN</th></tr>';
   html+='</thead><tbody>';
 
-  // Baris murid
   murid.forEach(function(m,i){
-    var tpAkhir=tpMurid(m,'akhir');
+    var tp=purataTP(m);
     html+='<tr>';
     html+='<td class="bil">'+(i+1)+'</td>';
     html+='<td class="nama left">'+m.nama+'</td>';
-    html+='<td class="tp-cell"></td>'; // Pertengahan — kosong untuk isi tangan
-    html+='<td class="tp-cell">'+(tpAkhir||'')+'</td>';
+    html+='<td class="tp-cell"></td>';
+    html+='<td class="tp-cell">'+tp+'</td>';
     html+='<td class="catatan"></td>';
     html+='</tr>';
   });
 
-  // Baris kosong (min 35 baris)
-  var kosong=Math.max(0,35-murid.length);
-  for(var i=0;i<kosong;i++){
+  // Baris kosong min 35
+  for(var i=0;i<Math.max(0,35-murid.length);i++){
     html+='<tr class="empty-row"><td class="bil"></td><td class="nama"></td><td></td><td></td><td class="catatan"></td></tr>';
   }
   html+='</tbody></table>';
 
   // Footer tandatangan
-  var thn=cfg.tahunAkademik||new Date().getFullYear();
   html+='<table class="borang-footer-table">';
-  html+='<tr>';
-  html+='<td style="width:160px" class="ftitle">PENTAKSIRAN PBD</td>';
-  html+='<td class="ftitle">PENGESAHAN</td>';
-  html+='<td class="ftitle">TANDATANGAN</td>';
-  html+='<td style="width:90px" class="ftitle">TARIKH</td>';
-  html+='</tr>';
-  html+='<tr>';
-  html+='<td class="fsub">PERTENGAHAN TAHUN</td>';
-  html+='<td class="fsub">'+(cfg.namaGuru||'')+'</td>';
-  html+='<td class="fsub"></td>';
-  html+='<td class="fsub"></td>';
-  html+='</tr>';
-  html+='<tr>';
-  html+='<td class="fsub">PBD AKHIR TAHUN</td>';
-  html+='<td class="fsub">'+(cfg.namaGuru||'')+'</td>';
-  html+='<td class="fsub"></td>';
-  html+='<td class="fsub"></td>';
-  html+='</tr>';
+  html+='<tr><td style="width:160px" class="ftitle">PENTAKSIRAN PBD</td><td class="ftitle">PENGESAHAN</td><td class="ftitle">TANDATANGAN</td><td style="width:90px" class="ftitle">TARIKH</td></tr>';
+  html+='<tr><td class="fsub">PERTENGAHAN TAHUN</td><td class="fsub">'+(cfg.namaGuru||'')+'</td><td class="fsub"></td><td class="fsub"></td></tr>';
+  html+='<tr><td class="fsub">PBD AKHIR TAHUN</td><td class="fsub">'+(cfg.namaGuru||'')+'</td><td class="fsub"></td><td class="fsub"></td></tr>';
   html+='</table>';
 
   var a4=document.getElementById('borangA4');
@@ -1104,9 +1044,9 @@ function saveCfg(){
     jawatan:document.getElementById('bJawatan')?document.getElementById('bJawatan').value:''
   };
   localStorage.setItem('pbdBorangCfg',JSON.stringify(cfg));
-  // Re-render borang kalau tajuk dah dipilih
-  if(S.borangTajuk&&S.borangAktifTajukIdx!==undefined){
-    renderBorang(S.borangTajuk[S.borangAktifTajukIdx],cfg);
+  // Re-render kalau data dah ada
+  if(document.getElementById('borangA4')&&S.murid&&S.murid.length>0){
+    renderBorang(cfg);
   }
 }
 
