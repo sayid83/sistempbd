@@ -941,10 +941,15 @@ function tukarBorangSemester(sem){
 }
 
 function muatDataBorang(cfg, sem){
-  var needed = sem === 'AKH' ? 3 : 2; // murid + PTH + AKH (kalau AKH)
+  // Reset dulu
+  S.borangTPPTH = {};
+  S.borangTPAKH = {};
+
   var done = 0;
+  var needed = 3; // murid + PTH + AKH (sentiasa muat keduanya)
   function check(){ if(++done === needed) renderBorang(cfg, sem); }
 
+  // Muat murid
   if(!S.murid || S.murid.length === 0){
     jsonp({action:'getMurid', kelasId:S.aktifKelas.id}, function(err,d){
       if(!err && d.status==='ok') S.murid = d.data;
@@ -957,24 +962,22 @@ function muatDataBorang(cfg, sem){
     S.borangTPPTH = {};
     if(!err && d.status==='ok' && d.data){
       d.data.forEach(function(r){
-        S.borangTPPTH[r.muridId+'_'+r.topikId] = r.tp;
+        S.borangTPPTH[r.muridId+'_'+r.topikId] = parseInt(r.tp)||0;
       });
     }
     check();
   });
 
-  // Muat AKH hanya bila diperlukan
-  if(sem === 'AKH'){
-    jsonp({action:'getTPKelas', kelasId:S.aktifKelas.id, semester:'AKH'}, function(err,d){
-      S.borangTPAKH = {};
-      if(!err && d.status==='ok' && d.data){
-        d.data.forEach(function(r){
-          S.borangTPAKH[r.muridId+'_'+r.topikId] = r.tp;
-        });
-      }
-      check();
-    });
-  }
+  // Sentiasa muat AKH
+  jsonp({action:'getTPKelas', kelasId:S.aktifKelas.id, semester:'AKH'}, function(err,d){
+    S.borangTPAKH = {};
+    if(!err && d.status==='ok' && d.data){
+      d.data.forEach(function(r){
+        S.borangTPAKH[r.muridId+'_'+r.topikId] = parseInt(r.tp)||0;
+      });
+    }
+    check();
+  });
 }
 
 function renderBorang(cfg, sem){
