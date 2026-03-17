@@ -224,8 +224,10 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   border-radius: var(--radius);
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   display: none; flex-direction: column; overflow: hidden;
-  flex: 1; min-height: 600px;
+  min-height: 0;
 }
+/* Scroll wrapper for grid */
+.grid-scroll { overflow: auto; position: relative; min-height: 0; height: calc(100vh - 320px); min-height: 400px; }
 .grid-toolbar {
   padding: 14px 20px; border-bottom: 1px solid #f3f4f6;
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -261,7 +263,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .tp-chip[data-tp="6"] .tp-chip-dot { background: var(--tp6-dot); }
 
 /* Scroll wrapper for grid */
-.grid-scroll { flex: 1; overflow: auto; position: relative; min-height: 0; }
+/* grid-scroll defined above */
 .wizard-bar { flex-shrink: 0; }
 .selector-panel { flex-shrink: 0; }
 .tajuk-wrap { flex-shrink: 0; }
