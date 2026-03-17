@@ -257,15 +257,17 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
 /* PRINT */
 @media print{
   .borang-setup,.borang-tajuk-sel,.no-print{display:none!important}
-  .borang-preview-wrap{background:#fff!important;border:none!important;padding:0!important}
-  .borang-a4{box-shadow:none!important;border:none!important;width:100%!important;padding:8mm 10mm!important}
+  .borang-preview-wrap{background:#fff!important;border:none!important;padding:0!important;overflow:visible!important}
+  .borang-a4{box-shadow:none!important;border:none!important;width:100%!important;padding:8mm 10mm!important;overflow:visible!important}
+  .borang-footer-table{display:table!important;width:100%!important}
+  .borang-footer-table td{display:table-cell!important}
 }
 
 /* PRINT STYLES */
 @media print {
   .sidebar,.topbar,.overlay,.no-print,.toast-wrap,.tab-bar,.selector-bar,.btn-primary,.btn-outline,.back-btn{display:none!important}
   .main{margin-left:0!important}
-  .page-content{padding:0!important;overflow:visible!important;height:auto!important}
+  .page-content{padding:0!important;overflow:visible!important;height:auto!important;display:block!important}
   body{background:#fff!important}
   .print-page-break{page-break-after:always}
   .card,.table-wrap,.ind-header,.stat-card{box-shadow:none!important;border:1px solid #ddd!important}
