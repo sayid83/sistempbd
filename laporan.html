@@ -214,6 +214,53 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
 .ppage-tp.tp6{background:#ecfdf5;color:#065f46}
 .ppage-status{font-size:9px;color:#9ca3af;white-space:nowrap}
 
+/* BORANG RASMI */
+.borang-setup{background:#fff;border:1px solid #e5e7eb;border-radius:var(--radius);padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.borang-setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.borang-input-group{display:flex;flex-direction:column;gap:5px}
+.borang-input-group label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280}
+.borang-input{padding:9px 12px;background:#f9fafb;border:1px solid #d1d5db;border-radius:var(--radius-sm);color:#1a1f3a;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;transition:border-color .2s}
+.borang-input:focus{outline:none;border-color:#1e6fe8;box-shadow:0 0 0 3px rgba(30,111,232,.1)}
+.borang-preview-wrap{background:#f8fafc;border:1px solid #e5e7eb;border-radius:var(--radius);padding:20px;overflow-x:auto}
+/* Borang A4 */
+.borang-a4{background:#fff;width:210mm;min-width:595px;margin:0 auto;padding:8mm 10mm;font-family:'Times New Roman',serif;font-size:10pt;color:#000;box-shadow:0 4px 24px rgba(0,0,0,.12);border:1px solid #e5e7eb}
+.borang-sekolah-header{display:flex;align-items:center;gap:10px;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:6px}
+.borang-logo{width:55px;height:55px;object-fit:contain;flex-shrink:0}
+.borang-logo-placeholder{width:55px;height:55px;border:2px solid #999;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9pt;color:#999;flex-shrink:0;text-align:center;line-height:1.2}
+.borang-nama-sekolah{flex:1;text-align:center}
+.borang-nama-sekolah-title{font-size:12pt;font-weight:700;text-transform:uppercase;line-height:1.3}
+.borang-nama-sekolah-alamat{font-size:9pt;margin-top:2px}
+.borang-judul{text-align:center;font-size:13pt;font-weight:700;text-transform:uppercase;margin:8px 0 6px;letter-spacing:.05em}
+.borang-info-table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10pt}
+.borang-info-table td{padding:2px 4px;vertical-align:top}
+.borang-info-table .lbl{font-weight:700;width:110px;white-space:nowrap}
+.borang-info-table .sep{width:8px;text-align:center}
+.borang-info-table .val{border-bottom:1px solid #000;min-width:120px}
+.borang-main-table{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:8px}
+.borang-main-table th,.borang-main-table td{border:1px solid #000;padding:3px 5px;text-align:center;vertical-align:middle}
+.borang-main-table .left{text-align:left}
+.borang-main-table thead th{font-weight:700;background:#f0f0f0;font-size:9pt}
+.borang-main-table .bil{width:22px}
+.borang-main-table .nama{text-align:left;width:200px}
+.borang-main-table .tp-cell{width:60px;font-weight:700}
+.borang-main-table .catatan{width:80px}
+.borang-main-table .empty-row td{height:16px}
+.borang-footer-table{width:100%;border-collapse:collapse;font-size:9pt;margin-top:6px}
+.borang-footer-table td{border:1px solid #000;padding:4px 6px;vertical-align:top}
+.borang-footer-table .ftitle{font-weight:700;font-size:8pt;text-align:center}
+.borang-footer-table .fsub{font-size:8pt;min-height:28px}
+.borang-tajuk-sel{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.borang-tajuk-pill{padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:600;border:2px solid #e5e7eb;background:#f9fafb;color:#4b5563;cursor:pointer;transition:all .2s}
+.borang-tajuk-pill:hover{border-color:#93c5fd;color:#1e6fe8;background:#eff6ff}
+.borang-tajuk-pill.active{background:linear-gradient(135deg,#1e6fe8,#7c4dff);border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(30,111,232,.3)}
+
+/* PRINT */
+@media print{
+  .borang-setup,.borang-tajuk-sel,.no-print{display:none!important}
+  .borang-preview-wrap{background:#fff!important;border:none!important;padding:0!important}
+  .borang-a4{box-shadow:none!important;border:none!important;width:100%!important;padding:8mm 10mm!important}
+}
+
 /* PRINT STYLES */
 @media print {
   .sidebar,.topbar,.overlay,.no-print,.toast-wrap,.tab-bar,.selector-bar,.btn-primary,.btn-outline,.back-btn{display:none!important}
@@ -238,11 +285,6 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
 }
 @media(max-width:480px){.stats-row{grid-template-columns:1fr 1fr}}
 </style>
-
-  <!-- Standard favicon -->
-  <link rel="icon" type="image/png" sizes="16x16" href="LOGO SEKOLAH.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="LOGO SEKOLAH.png">
-  
 </head>
 <body>
 
@@ -285,6 +327,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
       <div class="tab-bar no-print" id="tabBar" style="display:none">
         <button class="tab-btn active" id="tabKelas" onclick="tukartab('kelas')">📊 Laporan Kelas</button>
         <button class="tab-btn" id="tabMurid" onclick="tukartab('murid')">👤 Laporan Murid</button>
+        <button class="tab-btn" id="tabBorang" onclick="tukartab('borang')">📋 Borang Rasmi</button>
       </div>
     </div>
 
@@ -372,9 +415,11 @@ function tukartab(tab){
   S.aktifTab=tab;
   document.getElementById('tabKelas').classList.toggle('active',tab==='kelas');
   document.getElementById('tabMurid').classList.toggle('active',tab==='murid');
+  document.getElementById('tabBorang').classList.toggle('active',tab==='borang');
   updateTopbarActions();
   if(tab==='kelas') muatLaporanKelas();
-  else muatSenaraiMurid();
+  else if(tab==='murid') muatSenaraiMurid();
+  else muatBorangRasmi();
 }
 
 function updateTopbarActions(){
@@ -389,6 +434,9 @@ function updateTopbarActions(){
       '<button class="btn-outline blue no-print" onclick="cetakMurid()">🖨️ Cetak</button>'+
       '<button class="btn-outline blue no-print" onclick="cetakSemuaMurid()">🖨️ Cetak Semua</button>'+
       '<button class="btn-outline green no-print" onclick="eksportExcelMurid()">📊 Excel</button>';
+  } else if(S.aktifTab==='borang'){
+    area.innerHTML=
+      '<button class="btn-outline blue no-print" onclick="cetakBorang()">🖨️ Cetak Borang</button>';
   } else {
     area.innerHTML='';
   }
@@ -847,6 +895,223 @@ function eksportExcelMurid(){
       }
     });
   });
+}
+
+// ═══════════════════════════════════════════
+// BORANG RASMI
+// ═══════════════════════════════════════════
+function muatBorangRasmi(){
+  updateTopbarActions();
+  // Muat topik untuk kelas ini
+  var subjek=S.aktifKelas.subjek;
+  var tahun=S.aktifKelas.tahun;
+
+  // Ambil tetapan sekolah dari localStorage
+  var cfg=getBorangCfg();
+
+  var html='';
+
+  // Setup panel
+  html+='<div class="borang-setup no-print">';
+  html+='<div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:14px">⚙️ Tetapan Borang</div>';
+  html+='<div class="borang-setup-grid">';
+  html+='<div class="borang-input-group"><label>Nama Sekolah</label><input class="borang-input" id="bNamaSekolah" value="'+cfg.namaSekolah+'" oninput="saveCfg()" placeholder="SEKOLAH KEBANGSAAN..."></div>';
+  html+='<div class="borang-input-group"><label>Alamat Sekolah</label><input class="borang-input" id="bAlamat" value="'+cfg.alamat+'" oninput="saveCfg()" placeholder="No.1, Jalan..."></div>';
+  html+='<div class="borang-input-group"><label>Nama Guru</label><input class="borang-input" id="bNamaGuru" value="'+cfg.namaGuru+'" oninput="saveCfg()" placeholder="NAMA PENUH GURU"></div>';
+  html+='<div class="borang-input-group"><label>Tahun Akademik</label><input class="borang-input" id="bTahunAkademik" value="'+cfg.tahunAkademik+'" oninput="saveCfg()" placeholder="2025/2026"></div>';
+  html+='<div class="borang-input-group"><label>Nama Mata Pelajaran</label><input class="borang-input" id="bMataPelajaran" value="'+cfg.mataPelajaran+'" oninput="saveCfg()" placeholder="SAINS / MATEMATIK"></div>';
+  html+='<div class="borang-input-group"><label>Jawatan</label><input class="borang-input" id="bJawatan" value="'+cfg.jawatan+'" oninput="saveCfg()" placeholder="GURU MATA PELAJARAN"></div>';
+  html+='</div>';
+  html+='<div style="margin-top:14px;font-size:12px;font-weight:700;color:#374151">Pilih Unit/Tajuk:</div>';
+  html+='<div class="borang-tajuk-sel" id="borangTajukSel">Memuatkan tajuk...</div>';
+  html+='</div>';
+
+  // Preview area
+  html+='<div class="borang-preview-wrap"><div class="borang-a4" id="borangA4"><div style="text-align:center;color:#9ca3af;padding:40px">Pilih tajuk untuk jana borang</div></div></div>';
+
+  document.getElementById('contentArea').innerHTML=html;
+
+  // Muat tajuk
+  jsonp({action:'getTopik',subjek:subjek,tahun:String(tahun)},function(err,d){
+    if(err||d.status!=='ok') return;
+    S.borangTopik=d.data;
+    // Kumpul tajuk unik
+    var tajukMap={};var tajukOrder=[];
+    d.data.forEach(function(t){
+      var k=t.tajuk||'(Tiada)';
+      if(!tajukMap[k]){tajukMap[k]={label:k,subs:[]};tajukOrder.push(k);}
+      tajukMap[k].subs.push(t);
+    });
+    S.borangTajuk=tajukOrder.map(function(k){return tajukMap[k];});
+    var pills=document.getElementById('borangTajukSel');
+    if(!pills) return;
+    pills.innerHTML=S.borangTajuk.map(function(t,i){
+      return '<button class="borang-tajuk-pill" onclick="pilihBorangTajuk('+i+',this)">'+t.label+'</button>';
+    }).join('');
+  });
+}
+
+function pilihBorangTajuk(idx,el){
+  document.querySelectorAll('.borang-tajuk-pill').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  S.borangAktifTajukIdx=idx;
+  janaBorang(idx);
+}
+
+function janaBorang(idx){
+  var grp=S.borangTajuk[idx];
+  var cfg=getBorangCfg();
+  var kelasNama=S.aktifKelas.nama;
+  var subjek=S.aktifKelas.subjek;
+  var tahun=S.aktifKelas.tahun;
+
+  // Muat murid & TP
+  var done=0;
+  function check(){if(++done===2) renderBorang(grp,cfg);}
+
+  if(!S.murid||S.murid.length===0){
+    jsonp({action:'getMurid',kelasId:S.aktifKelas.id},function(err,d){
+      if(!err&&d.status==='ok') S.murid=d.data;
+      check();
+    });
+  } else { check(); }
+
+  jsonp({action:'getTPKelas',kelasId:S.aktifKelas.id},function(err,d){
+    S.borangTP={};
+    if(!err&&d.status==='ok'&&d.data){
+      d.data.forEach(function(r){
+        S.borangTP[r.muridId+'_'+r.topikId]=r.tp;
+      });
+    }
+    check();
+  });
+}
+
+function renderBorang(grp,cfg){
+  var murid=S.murid||[];
+  var subs=grp.subs||[];
+  var kelasNama=S.aktifKelas.nama;
+
+  // Kira TP murid — purata subtopik dalam tajuk ini
+  function tpMurid(m,col){
+    if(col==='pthn') return ''; // kosong — input manual
+    var sum=0;var cnt=0;
+    subs.forEach(function(s){
+      var k=m.id+'_'+s.id;
+      var v=S.borangTP[k]||0;
+      if(v>0){sum+=v;cnt++;}
+    });
+    if(cnt===0) return '';
+    return Math.round(sum/cnt);
+  }
+
+  var html='';
+  // Header sekolah
+  html+='<div class="borang-sekolah-header">';
+  html+='<div class="borang-logo-placeholder">LOGO</div>';
+  html+='<div class="borang-nama-sekolah">';
+  html+='<div class="borang-nama-sekolah-title">'+(cfg.namaSekolah||'NAMA SEKOLAH')+'</div>';
+  html+='<div class="borang-nama-sekolah-alamat">'+(cfg.alamat||'ALAMAT SEKOLAH')+'</div>';
+  html+='</div>';
+  html+='<div class="borang-logo-placeholder">LOGO</div>';
+  html+='</div>';
+
+  // Judul
+  html+='<div class="borang-judul">AKADEMIK '+(cfg.tahunAkademik||new Date().getFullYear())+'/'+(parseInt(cfg.tahunAkademik||new Date().getFullYear())+1)+'</div>';
+
+  // Info guru & kelas
+  html+='<table class="borang-info-table">';
+  html+='<tr><td class="lbl">Nama Guru</td><td class="sep">:</td><td class="val">'+(cfg.namaGuru||'')+'</td>';
+  html+='<td style="width:20px"></td>';
+  html+='<td class="lbl">Mata Pelajaran</td><td class="sep">:</td><td class="val">'+(cfg.mataPelajaran||subjek+' TAHUN '+tahun)+'</td></tr>';
+  html+='<tr><td class="lbl">Kelas</td><td class="sep">:</td><td class="val">'+kelasNama+'</td>';
+  html+='<td></td><td class="lbl">Unit/Tajuk</td><td class="sep">:</td><td class="val">'+grp.label+'</td></tr>';
+  html+='</table>';
+
+  // Jadual murid
+  html+='<table class="borang-main-table">';
+  html+='<thead>';
+  html+='<tr><th rowspan="2" class="bil">B<br>I<br>L</th><th rowspan="2" class="nama">NAMA MURID</th>';
+  html+='<th colspan="2">TAHAP PENGUASAAN<br>PENTAKSIRAN BILIK</th>';
+  html+='<th rowspan="2" class="catatan">CATATAN</th></tr>';
+  html+='<tr><th class="tp-cell">PERTENGAHAN<br>TAHUN</th><th class="tp-cell">AKHIR<br>TAHUN</th></tr>';
+  html+='</thead><tbody>';
+
+  // Baris murid
+  murid.forEach(function(m,i){
+    var tpAkhir=tpMurid(m,'akhir');
+    html+='<tr>';
+    html+='<td class="bil">'+(i+1)+'</td>';
+    html+='<td class="nama left">'+m.nama+'</td>';
+    html+='<td class="tp-cell"></td>'; // Pertengahan — kosong untuk isi tangan
+    html+='<td class="tp-cell">'+(tpAkhir||'')+'</td>';
+    html+='<td class="catatan"></td>';
+    html+='</tr>';
+  });
+
+  // Baris kosong (min 35 baris)
+  var kosong=Math.max(0,35-murid.length);
+  for(var i=0;i<kosong;i++){
+    html+='<tr class="empty-row"><td class="bil"></td><td class="nama"></td><td></td><td></td><td class="catatan"></td></tr>';
+  }
+  html+='</tbody></table>';
+
+  // Footer tandatangan
+  var thn=cfg.tahunAkademik||new Date().getFullYear();
+  html+='<table class="borang-footer-table">';
+  html+='<tr>';
+  html+='<td style="width:160px" class="ftitle">PENTAKSIRAN PBD</td>';
+  html+='<td class="ftitle">PENGESAHAN</td>';
+  html+='<td class="ftitle">TANDATANGAN</td>';
+  html+='<td style="width:90px" class="ftitle">TARIKH</td>';
+  html+='</tr>';
+  html+='<tr>';
+  html+='<td class="fsub">PERTENGAHAN TAHUN</td>';
+  html+='<td class="fsub">'+(cfg.namaGuru||'')+'</td>';
+  html+='<td class="fsub"></td>';
+  html+='<td class="fsub"></td>';
+  html+='</tr>';
+  html+='<tr>';
+  html+='<td class="fsub">PBD AKHIR TAHUN</td>';
+  html+='<td class="fsub">'+(cfg.namaGuru||'')+'</td>';
+  html+='<td class="fsub"></td>';
+  html+='<td class="fsub"></td>';
+  html+='</tr>';
+  html+='</table>';
+
+  var a4=document.getElementById('borangA4');
+  if(a4) a4.innerHTML=html;
+}
+
+function getBorangCfg(){
+  try{
+    var s=localStorage.getItem('pbdBorangCfg');
+    return s?JSON.parse(s):{
+      namaSekolah:'',alamat:'',namaGuru:'',
+      tahunAkademik:new Date().getFullYear().toString(),
+      mataPelajaran:'',jawatan:'GURU MATA PELAJARAN'
+    };
+  }catch(e){return {namaSekolah:'',alamat:'',namaGuru:'',tahunAkademik:new Date().getFullYear().toString(),mataPelajaran:'',jawatan:''};}
+}
+
+function saveCfg(){
+  var cfg={
+    namaSekolah:document.getElementById('bNamaSekolah')?document.getElementById('bNamaSekolah').value:'',
+    alamat:document.getElementById('bAlamat')?document.getElementById('bAlamat').value:'',
+    namaGuru:document.getElementById('bNamaGuru')?document.getElementById('bNamaGuru').value:'',
+    tahunAkademik:document.getElementById('bTahunAkademik')?document.getElementById('bTahunAkademik').value:'',
+    mataPelajaran:document.getElementById('bMataPelajaran')?document.getElementById('bMataPelajaran').value:'',
+    jawatan:document.getElementById('bJawatan')?document.getElementById('bJawatan').value:''
+  };
+  localStorage.setItem('pbdBorangCfg',JSON.stringify(cfg));
+  // Re-render borang kalau tajuk dah dipilih
+  if(S.borangTajuk&&S.borangAktifTajukIdx!==undefined){
+    renderBorang(S.borangTajuk[S.borangAktifTajukIdx],cfg);
+  }
+}
+
+function cetakBorang(){
+  window.print();
 }
 
 // ═══════════════════════════════════════════
