@@ -356,6 +356,10 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
       <span id="previewProgressTxt">Memuatkan...</span>
       <div class="preview-prog-bar-wrap"><div class="preview-prog-bar" id="previewProgBar" style="width:0%"></div></div>
     </div>
+    <div id="previewNotis" style="display:none;padding:10px 20px;background:#fefce8;border-bottom:1px solid #fde047;font-size:11px;color:#713f12;display:flex;align-items:center;gap:8px">
+      <span>💡</span>
+      <span>Untuk buang URL &amp; tarikh dalam cetakan: dalam dialog cetak, nyahpilih <strong>"Pengepala dan Pengaki"</strong> (Headers and footers)</span>
+    </div>
     <div class="preview-body" id="previewBody"></div>
   </div>
 </div>
@@ -1116,6 +1120,7 @@ function bukaPreview(title,pages){
 
 function paparPreviewPages(pages){
   document.getElementById('previewProgress').style.display='none';
+  document.getElementById('previewNotis').style.display='flex';
   var body=document.getElementById('previewBody');
 
   // Inject CSS ppage ke dalam preview
@@ -1139,11 +1144,12 @@ function paparPreviewPages(pages){
     var printWin=window.open('','_blank','width=900,height=700');
     var css='<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">'+
       '<style>'+
-      '@page{margin:12mm 14mm}'+
+      '@page{margin:12mm 14mm;size:A4}'+
       '*{box-sizing:border-box;margin:0;padding:0}'+
       'body{font-family:"Plus Jakarta Sans",sans-serif;background:#fff;color:#1a1f3a}'+
-      '.print-page{page-break-after:always;padding:0;margin-bottom:0}'+
+      '.print-page{page-break-after:always;padding:0;margin-bottom:0;position:relative}'+
       '.print-page:last-child{page-break-after:auto}'+
+      '.page-num{position:fixed;bottom:6mm;right:14mm;font-size:9px;color:#9ca3af;font-family:monospace}'+
       '.ppage{font-size:10.5px}'+
       '.ppage-header{background:linear-gradient(135deg,#1e3a5f,#1e1b4b);color:#fff;padding:12px 16px;border-radius:6px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}'+
       '.ppage-nama{font-size:14px;font-weight:800;margin-bottom:2px}'+
@@ -1165,9 +1171,12 @@ function paparPreviewPages(pages){
       '.tp2{background:#fff7ed;color:#c2410c}.tp3{background:#fefce8;color:#854d0e}'+
       '.tp4{background:#f0fdf4;color:#15803d}.tp5{background:#dcfce7;color:#14532d}.tp6{background:#ecfdf5;color:#065f46}'+
       '</style>';
-    var body2='<html><head>'+css+'</head><body>';
-    pages.forEach(function(p){
-      body2+='<div class="print-page">'+p.html+'</div>';
+    var body2='<html><head><title></title>'+css+'</head><body>';
+    var total=pages.length;
+    pages.forEach(function(p,i){
+      body2+='<div class="print-page">'+p.html+
+        '<div class="page-num">'+(i+1)+' / '+total+'</div>'+
+      '</div>';
     });
     body2+='</body></html>';
     printWin.document.write(body2);
@@ -1179,6 +1188,7 @@ function paparPreviewPages(pages){
 function tutupPreview(e){
   if(e&&e.target!==document.getElementById('previewBackdrop')) return;
   document.getElementById('previewBackdrop').classList.remove('show');
+  document.getElementById('previewNotis').style.display='none';
 }
 
 // ═══════════════════════════════════════════
