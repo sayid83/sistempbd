@@ -129,7 +129,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .menu-btn:hover { background: #e5e7eb; color: #1a1f3a; }
 .topbar-title { font-size: 15px; font-weight: 700; color: #1a1f3a; }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.page-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 18px; min-height: 0; overflow-y: auto; }
+.page-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; }
 
 /* ── STEP WIZARD BAR ── */
 .wizard-bar {
@@ -262,6 +262,10 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 
 /* Scroll wrapper for grid */
 .grid-scroll { flex: 1; overflow: auto; position: relative; min-height: 0; }
+.wizard-bar { flex-shrink: 0; }
+.selector-panel { flex-shrink: 0; }
+.tajuk-wrap { flex-shrink: 0; }
+.placeholder { flex-shrink: 0; }
 
 /* THE GRID TABLE */
 .tp-table {
