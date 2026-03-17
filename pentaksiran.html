@@ -112,7 +112,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .overlay.show { display: block; }
 
 /* ── MAIN ── */
-.main { margin-left: var(--sidebar-w); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
 .topbar {
   height: var(--topbar-h);
   background: #ffffff; border-bottom: 1px solid #e5e7eb;
@@ -129,7 +129,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .menu-btn:hover { background: #e5e7eb; color: #1a1f3a; }
 .topbar-title { font-size: 15px; font-weight: 700; color: #1a1f3a; }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.page-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; }
+.page-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
 
 /* ── STEP WIZARD BAR ── */
 .wizard-bar {
@@ -224,7 +224,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   border-radius: var(--radius);
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   display: none; flex-direction: column; overflow: hidden;
-  flex: 1; min-height: 0; height: 0;
+  flex: 1; min-height: 600px;
 }
 .grid-toolbar {
   padding: 14px 20px; border-bottom: 1px solid #f3f4f6;
