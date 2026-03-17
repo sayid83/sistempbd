@@ -468,10 +468,6 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   .tp-table .col-nama { min-width: 150px; max-width: 150px; }
 }
 </style>
-
-   <!-- Standard favicon -->
-  <link rel="icon" type="image/png" sizes="16x16" href="LOGO SEKOLAH.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="LOGO SEKOLAH.png">
 </head>
 <body>
 
@@ -550,6 +546,13 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
         <div class="sel-group" id="subjekGroup" style="display:none">
           <div class="sel-label">Subjek &amp; Tahun</div>
           <div style="padding:10px 14px;background:#f1f5f9;border:1px solid #e5e7eb;border-radius:var(--radius-sm);font-size:14px;font-weight:700;color:#374151" id="subjekDisplay">—</div>
+        </div>
+        <div class="sel-group" id="semesterGroup" style="display:none">
+          <div class="sel-label">Semester</div>
+          <select class="sel-select" id="selSemester" onchange="onSemesterChange()">
+            <option value="PTH">Pertengahan Tahun</option>
+            <option value="AKH">Akhir Tahun</option>
+          </select>
         </div>
       </div>
     </div>
@@ -688,8 +691,10 @@ var S = {
   tajuk:      [],   // senarai tajuk unik
   aktifKelas: null,
   aktifTajuk: null,
+  semester:   'PTH', // PTH = Pertengahan Tahun, AKH = Akhir Tahun
   tpData:     {},   // { muridId_topikId: tp } — data grid
   tpAsal:     {},   // rekod dari server (untuk bandingkan dirty)
+  tpPTH:      {},   // cache PTH values untuk AKH mode
   dirtyCount: 0,
   fillTp:     null,
   cbCount:    0,
@@ -745,6 +750,24 @@ function muatKelas() {
 }
 
 // ═════════════════════════════════════════════════════
+// SEMESTER CHANGE
+// ═════════════════════════════════════════════════════
+function onSemesterChange() {
+  var sem = document.getElementById('selSemester').value;
+  if (S.dirtyCount > 0) {
+    if (!confirm('Ada perubahan belum disimpan. Tukar semester akan buang perubahan ini. Teruskan?')) {
+      document.getElementById('selSemester').value = S.semester;
+      return;
+    }
+  }
+  S.semester = sem;
+  // Reload grid dengan semester baru
+  if (S.aktifTajuk) {
+    _pilihTajukTerus(S.aktifTajuk);
+  }
+}
+
+// ═════════════════════════════════════════════════════
 // STEP 1 — PILIH KELAS
 // ═════════════════════════════════════════════════════
 function onKelasChange() {
@@ -758,9 +781,11 @@ function onKelasChange() {
   wizardSet(1, 'done', S.aktifKelas.nama);
   wizardSet(2, 'active', 'Pilih Tajuk');
 
-  // Papar subjek
+  // Papar subjek & semester
   document.getElementById('subjekGroup').style.display = 'flex';
+  document.getElementById('semesterGroup').style.display = 'flex';
   document.getElementById('subjekDisplay').textContent = S.aktifKelas.subjek + ' · Tahun ' + S.aktifKelas.tahun;
+  document.getElementById('selSemester').value = S.semester || 'PTH';
 
   // Reset grid
   resetGrid();
@@ -860,9 +885,10 @@ function renderGrid(subs) {
   document.getElementById('saveBar').style.display = 'flex';
 
   document.getElementById('gridTitle').textContent = S.aktifTajuk;
+  var semLabel = (S.semester === 'AKH') ? '🔵 Akhir Tahun' : '🟡 Pertengahan Tahun';
   document.getElementById('gridSub').textContent =
     S.aktifKelas.nama + ' · ' + S.aktifKelas.subjek + ' Tahun ' + S.aktifKelas.tahun +
-    ' · ' + subs.length + ' subtopik · ' + S.murid.length + ' murid';
+    ' · ' + subs.length + ' subtopik · ' + S.murid.length + ' murid · ' + semLabel;
 
   // THEAD
   var head = document.getElementById('tpHead');
@@ -944,20 +970,67 @@ function muatTPSediaAda(subs) {
 
   if (topikIds.length === 0) { renderGridRows(subs); return; }
 
-  // Guna getTPKelas — ambil semua rekod TP untuk kelas ini sekaligus
-  jsonp({ action: 'getTPKelas', kelasId: S.aktifKelas.id }, function(err, d) {
-    if (!err && d.status === 'ok' && d.data) {
-      d.data.forEach(function(r) {
-        // Tapis — hanya topik dalam tajuk semasa
-        if (topikIds.indexOf(r.topikId) !== -1) {
-          var key = r.muridId + '_' + r.topikId;
-          S.tpAsal[key] = parseInt(r.tp) || 0;
-          S.tpData[key] = parseInt(r.tp) || 0;
-        }
+  var sem = S.semester || 'PTH';
+
+  if (sem === 'AKH') {
+    // Muat PTH dulu (untuk pre-fill), kemudian muat AKH
+    var done = 0;
+    var pthData = {};
+
+    jsonp({ action: 'getTPKelas', kelasId: S.aktifKelas.id, semester: 'PTH' }, function(err, d) {
+      if (!err && d.status === 'ok' && d.data) {
+        d.data.forEach(function(r) {
+          if (topikIds.indexOf(r.topikId) !== -1) {
+            pthData[r.muridId + '_' + r.topikId] = parseInt(r.tp) || 0;
+          }
+        });
+      }
+      S.tpPTH = pthData;
+      if (++done === 2) finalRender();
+    });
+
+    jsonp({ action: 'getTPKelas', kelasId: S.aktifKelas.id, semester: 'AKH' }, function(err, d) {
+      if (!err && d.status === 'ok' && d.data) {
+        d.data.forEach(function(r) {
+          if (topikIds.indexOf(r.topikId) !== -1) {
+            var key = r.muridId + '_' + r.topikId;
+            S.tpAsal[key] = parseInt(r.tp) || 0;
+            // AKH: kalau ada rekod AKH guna, kalau takde guna PTH sebagai default
+            S.tpData[key] = parseInt(r.tp) || 0;
+          }
+        });
+      }
+      if (++done === 2) finalRender();
+    });
+
+    function finalRender() {
+      // Pre-fill AKH dengan nilai PTH untuk yang belum ada rekod AKH
+      topikIds.forEach(function(tid) {
+        S.murid.forEach(function(m) {
+          var key = m.id + '_' + tid;
+          if (S.tpData[key] === undefined && pthData[key]) {
+            S.tpData[key] = pthData[key];
+            // tpAsal kekal 0 — ini baru, belum disimpan
+          }
+        });
       });
+      renderGridRows(subs);
     }
-    renderGridRows(subs);
-  });
+  } else {
+    // PTH — normal
+    jsonp({ action: 'getTPKelas', kelasId: S.aktifKelas.id, semester: 'PTH' }, function(err, d) {
+      if (!err && d.status === 'ok' && d.data) {
+        d.data.forEach(function(r) {
+          if (topikIds.indexOf(r.topikId) !== -1) {
+            var key = r.muridId + '_' + r.topikId;
+            S.tpAsal[key] = parseInt(r.tp) || 0;
+            S.tpData[key] = parseInt(r.tp) || 0;
+          }
+        });
+      }
+      renderGridRows(subs);
+    });
+  }
 }
 
 // ═════════════════════════════════════════════════════
@@ -1153,9 +1226,10 @@ function simpanTP() {
     var asal = S.tpAsal[key] !== undefined ? S.tpAsal[key] : 0;
     if (tp !== asal) {
       payload.push({
-        muridId: btn.getAttribute('data-murid'),
-        topikId: btn.getAttribute('data-topik'),
-        tp: tp
+        muridId:  btn.getAttribute('data-murid'),
+        topikId:  btn.getAttribute('data-topik'),
+        tp:       tp,
+        semester: S.semester || 'PTH'
       });
     }
   });
@@ -1245,6 +1319,7 @@ function resetGrid() {
 function resetToStep1() {
   resetGrid();
   document.getElementById('subjekGroup').style.display = 'none';
+  document.getElementById('semesterGroup').style.display = 'none';
   document.getElementById('tajukWrap').style.display = 'none';
   document.getElementById('gridArea').style.display  = 'none';
   document.getElementById('saveBar').style.display   = 'none';
