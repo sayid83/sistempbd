@@ -1135,12 +1135,12 @@ function clearGrid() {
 // SIMPAN TP
 // ═════════════════════════════════════════════════════
 function simpanTP() {
-  // Kumpul semua rekod (termasuk yang kosong untuk delete)
+  // Kumpul semua rekod yang berubah
   var payload = [];
   document.querySelectorAll('.tp-btn').forEach(function(btn) {
-    var key    = btn.getAttribute('data-key');
-    var tp     = parseInt(btn.getAttribute('data-tp')) || 0;
-    var asal   = S.tpAsal[key] !== undefined ? S.tpAsal[key] : 0;
+    var key  = btn.getAttribute('data-key');
+    var tp   = parseInt(btn.getAttribute('data-tp')) || 0;
+    var asal = S.tpAsal[key] !== undefined ? S.tpAsal[key] : 0;
     if (tp !== asal) {
       payload.push({
         muridId: btn.getAttribute('data-murid'),
@@ -1152,43 +1152,70 @@ function simpanTP() {
 
   if (payload.length === 0) { showToast('Tiada perubahan untuk disimpan', 'info'); return; }
 
-  var btn = document.getElementById('btnSimpanTP');
-  btn.disabled = true;
-  btn.textContent = '⏳ Menyimpan...';
+  var btnEl = document.getElementById('btnSimpanTP');
+  btnEl.disabled = true;
+  btnEl.textContent = '⏳ Menyimpan...';
 
-  // Tunjuk progress
   var prog = document.getElementById('saveProgress');
   var bar  = document.getElementById('saveProgBar');
   var txt  = document.getElementById('saveProgText');
   prog.classList.add('show');
-  bar.style.width = '20%';
+  bar.style.width = '5%';
   txt.textContent = 'Menghantar ' + payload.length + ' rekod...';
 
-  jsonp({ action: 'saveTP', data: encodeURIComponent(JSON.stringify(payload)) }, function(err, d) {
-    bar.style.width = '100%';
-    setTimeout(function() { prog.classList.remove('show'); bar.style.width = '0%'; }, 600);
-    btn.disabled = false;
-    btn.textContent = '💾 Simpan TP';
+  // Batch — max 20 rekod setiap hantar (elak URL terlalu panjang)
+  var SAIZ   = 20;
+  var batches = [];
+  for (var i = 0; i < payload.length; i += SAIZ) {
+    batches.push(payload.slice(i, i + SAIZ));
+  }
 
-    if (err || d.status !== 'ok') {
-      showToast('Gagal simpan: ' + (d ? d.message : err.message), 'error');
+  var batchIdx  = 0;
+  var savedAll  = [];
+  var errors    = [];
+
+  function hantarBatch() {
+    if (batchIdx >= batches.length) {
+      // Semua selesai
+      bar.style.width = '100%';
+      setTimeout(function() { prog.classList.remove('show'); bar.style.width = '0%'; }, 600);
+      btnEl.disabled = false;
+      btnEl.textContent = '💾 Simpan TP';
+
+      if (errors.length > 0) {
+        showToast('Sebahagian gagal disimpan (' + errors.length + ' batch)', 'error');
+      } else {
+        // Kemaskini state
+        savedAll.forEach(function(r) {
+          var k = r.muridId + '_' + r.topikId;
+          S.tpAsal[k] = r.tp;
+          S.tpData[k] = r.tp;
+        });
+        document.querySelectorAll('.tp-btn.dirty').forEach(function(b) { b.classList.remove('dirty'); });
+        kemaskiniDirtyCount();
+        showToast('✅ ' + savedAll.length + ' rekod TP berjaya disimpan!', 'success');
+        txt.textContent = 'Selesai!';
+      }
       return;
     }
 
-    // Kemaskini asal dengan data baru
-    payload.forEach(function(r) {
-      var k = r.muridId + '_' + r.topikId;
-      S.tpAsal[k] = r.tp;
-      S.tpData[k] = r.tp;
+    var batch = batches[batchIdx];
+    var pct   = Math.round(((batchIdx + 1) / batches.length) * 100);
+    txt.textContent = 'Batch ' + (batchIdx + 1) + '/' + batches.length + ' — ' + (batchIdx * SAIZ + batch.length) + '/' + payload.length + ' rekod';
+    bar.style.width  = pct + '%';
+
+    jsonp({ action: 'saveTP', data: encodeURIComponent(JSON.stringify(batch)) }, function(err, d) {
+      if (err || !d || d.status !== 'ok') {
+        errors.push(batchIdx);
+      } else {
+        batch.forEach(function(r) { savedAll.push(r); });
+      }
+      batchIdx++;
+      hantarBatch();
     });
+  }
 
-    // Remove dirty class
-    document.querySelectorAll('.tp-btn.dirty').forEach(function(b) { b.classList.remove('dirty'); });
-    kemaskiniDirtyCount();
-
-    showToast('✅ ' + payload.length + ' rekod TP berjaya disimpan!', 'success');
-    txt.textContent = 'Selesai!';
-  });
+  hantarBatch();
 }
 
 // ═════════════════════════════════════════════════════
