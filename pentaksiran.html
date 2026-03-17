@@ -928,19 +928,17 @@ function renderGridRows(subs) {
 // MUAT TP DARI SERVER
 // ═════════════════════════════════════════════════════
 function muatTPSediaAda(subs) {
-  // Muat TP untuk setiap topik dalam tajuk ini
   var topikIds = subs.map(function(s){ return s.id; });
-  var loaded = 0;
   S.tpAsal = {};
   S.tpData = {};
 
   if (topikIds.length === 0) { renderGridRows(subs); return; }
 
-  // Muat sekaligus untuk kelas ini
-  jsonp({ action: 'getTP', kelasId: S.aktifKelas.id }, function(err, d) {
+  // Guna getTPKelas — ambil semua rekod TP untuk kelas ini sekaligus
+  jsonp({ action: 'getTPKelas', kelasId: S.aktifKelas.id }, function(err, d) {
     if (!err && d.status === 'ok' && d.data) {
       d.data.forEach(function(r) {
-        // Hanya ambil topik dalam tajuk ini
+        // Tapis — hanya topik dalam tajuk semasa
         if (topikIds.indexOf(r.topikId) !== -1) {
           var key = r.muridId + '_' + r.topikId;
           S.tpAsal[key] = parseInt(r.tp) || 0;
