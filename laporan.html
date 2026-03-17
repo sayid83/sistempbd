@@ -941,25 +941,40 @@ function tukarBorangSemester(sem){
 }
 
 function muatDataBorang(cfg, sem){
-  var done=0;
-  function check(){if(++done===2) renderBorang(cfg, sem);}
+  var needed = sem === 'AKH' ? 3 : 2; // murid + PTH + AKH (kalau AKH)
+  var done = 0;
+  function check(){ if(++done === needed) renderBorang(cfg, sem); }
 
-  if(!S.murid||S.murid.length===0){
-    jsonp({action:'getMurid',kelasId:S.aktifKelas.id},function(err,d){
-      if(!err&&d.status==='ok') S.murid=d.data;
+  if(!S.murid || S.murid.length === 0){
+    jsonp({action:'getMurid', kelasId:S.aktifKelas.id}, function(err,d){
+      if(!err && d.status==='ok') S.murid = d.data;
       check();
     });
   } else { check(); }
 
-  jsonp({action:'getTPKelas',kelasId:S.aktifKelas.id,semester:sem},function(err,d){
-    S.borangTP={};
-    if(!err&&d.status==='ok'&&d.data){
+  // Sentiasa muat PTH
+  jsonp({action:'getTPKelas', kelasId:S.aktifKelas.id, semester:'PTH'}, function(err,d){
+    S.borangTPPTH = {};
+    if(!err && d.status==='ok' && d.data){
       d.data.forEach(function(r){
-        S.borangTP[r.muridId+'_'+r.topikId]=r.tp;
+        S.borangTPPTH[r.muridId+'_'+r.topikId] = r.tp;
       });
     }
     check();
   });
+
+  // Muat AKH hanya bila diperlukan
+  if(sem === 'AKH'){
+    jsonp({action:'getTPKelas', kelasId:S.aktifKelas.id, semester:'AKH'}, function(err,d){
+      S.borangTPAKH = {};
+      if(!err && d.status==='ok' && d.data){
+        d.data.forEach(function(r){
+          S.borangTPAKH[r.muridId+'_'+r.topikId] = r.tp;
+        });
+      }
+      check();
+    });
+  }
 }
 
 function renderBorang(cfg, sem){
@@ -970,17 +985,16 @@ function renderBorang(cfg, sem){
   var subjek=S.aktifKelas.subjek;
   var tahun=S.aktifKelas.tahun;
 
-  // Kira purata TP keseluruhan untuk setiap murid (semua topik)
-  function purataTP(m){
+  // Kira purata TP untuk murid dari sumber data tertentu
+  function purataTPDari(m, tpSource){
     var sum=0; var cnt=0;
-    Object.keys(S.borangTP).forEach(function(k){
+    Object.keys(tpSource).forEach(function(k){
       if(k.indexOf(m.id+'_')===0){
-        var v=S.borangTP[k]||0;
+        var v=tpSource[k]||0;
         if(v>0){sum+=v;cnt++;}
       }
     });
-    if(cnt===0) return '';
-    return Math.round(sum/cnt);
+    return cnt===0 ? '' : Math.round(sum/cnt);
   }
 
   var html='';
@@ -1019,14 +1033,13 @@ function renderBorang(cfg, sem){
   html+='</thead><tbody>';
 
   murid.forEach(function(m,i){
-    var tp=purataTP(m);
-    var tpPTH = sem==='PTH' ? tp : '';
-    var tpAKH = sem==='AKH' ? tp : '';
+    var tpPTH = purataTPDari(m, S.borangTPPTH || {});
+    var tpAKH = sem==='AKH' ? purataTPDari(m, S.borangTPAKH || {}) : '';
     html+='<tr>';
     html+='<td class="bil">'+(i+1)+'</td>';
     html+='<td class="nama left">'+m.nama+'</td>';
-    html+='<td class="tp-cell" style="font-weight:700;'+(sem==='PTH'?'background:#fffbeb':'')+'">'+tpPTH+'</td>';
-    html+='<td class="tp-cell" style="font-weight:700;'+(sem==='AKH'?'background:#f0fdf4':'')+'">'+tpAKH+'</td>';
+    html+='<td class="tp-cell" style="font-weight:700;'+(tpPTH?'background:#fffbeb':'')+'">'+tpPTH+'</td>';
+    html+='<td class="tp-cell" style="font-weight:700;'+(tpAKH?'background:#f0fdf4':'')+'">'+tpAKH+'</td>';
     html+='<td class="catatan"></td>';
     html+='</tr>';
   });
