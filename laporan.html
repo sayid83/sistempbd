@@ -499,7 +499,7 @@ function renderLaporanKelas(d){
   html+=statCard('blue','👥',d.jumlahMurid,'Jumlah Murid','');
   html+=statCard('green',jumlahDinilai+'/',topik.length,'Topik Dinilai','daripada '+topik.length+' topik');
   html+=statCard('gold','⭐',purataKeseluruhan,'Purata TP','keseluruhan kelas');
-  html+=statCard('purple','⚠️',d.muridBelumCapai.length,'Murid Perlu Perhatian','TP < 4');
+  html+=statCard('purple','⚠️',d.muridBelumCapai.length,'Murid Perlu Perhatian','TP < 3');
   html+='</div>';
 
   // Charts row
@@ -534,10 +534,10 @@ function renderLaporanKelas(d){
   });
   html+='</tbody></table></div></div>';
 
-  // Murid belum capai TP4
+  // Murid belum capai TP3
   if(d.muridBelumCapai&&d.muridBelumCapai.length>0){
     html+='<div class="table-wrap">';
-    html+='<div class="table-header"><div class="card-title">⚠️ Murid Memerlukan Perhatian (TP &lt; 4)</div></div>';
+    html+='<div class="table-header"><div class="card-title">⚠️ Murid Memerlukan Perhatian (TP &lt; 3)</div></div>';
     html+='<div style="overflow-x:auto"><table class="report-table">';
     html+='<thead><tr><th>No</th><th>Nama Murid</th><th>Topik</th><th class="center">TP</th></tr></thead><tbody>';
     d.muridBelumCapai.forEach(function(m){
@@ -698,7 +698,7 @@ function renderLaporanMurid(d,forPrint){
       '</div></td></tr>';
     grp.items.forEach(function(t){
       var status=t.tp===0?'<span style="color:#9ca3af;font-size:11px">— Belum dinilai</span>':
-                 t.tp<4?'<span style="color:#ef4444;font-size:11px;font-weight:600">⚠️ Perlu perhatian</span>':
+                 t.tp<3?'<span style="color:#ef4444;font-size:11px;font-weight:600">⚠️ Perlu perhatian</span>':
                  t.tp<6?'<span style="color:#059669;font-size:11px;font-weight:600">✓ Mencapai</span>':
                  '<span style="color:#7c3aed;font-size:11px;font-weight:600">★ Cemerlang</span>';
       html+='<tr>'+
@@ -820,7 +820,7 @@ function cetakKelas(){
 
   // Murid perlu perhatian
   if(d.muridBelumCapai&&d.muridBelumCapai.length>0){
-    body+='<div class="section-title" style="margin-top:8px">⚠️ Murid Memerlukan Perhatian (TP &lt; 4)</div>';
+    body+='<div class="section-title" style="margin-top:8px">⚠️ Murid Memerlukan Perhatian (TP &lt; 3)</div>';
     body+='<table class="attn"><thead><tr><th>No</th><th>Nama Murid</th><th>Subtopik</th><th class="center">TP</th></tr></thead><tbody>';
     d.muridBelumCapai.forEach(function(m){
       m.tpRendah.forEach(function(r,idx){
@@ -881,7 +881,7 @@ function buatHalamanMurid(d){
       '<span class="ppage-tajuk-purata">'+grp.dinilai+'/'+grp.jumlah+' &nbsp; TP '+grp.purata+'</span>'+
     '</div>';
     grp.items.forEach(function(t){
-      var stat=t.tp===0?'—':t.tp<4?'⚠ Perlu perhatian':t.tp<6?'✓ Mencapai':'★ Cemerlang';
+      var stat=t.tp===0?'—':t.tp<3?'⚠ Perlu perhatian':t.tp<6?'✓ Mencapai':'★ Cemerlang';
       html+='<div class="ppage-subtopik">'+
         '<span class="ppage-kod">'+t.kodDSKP+'</span>'+
         '<span style="font-size:10px">'+t.nama+'</span>'+
@@ -980,7 +980,7 @@ function eksportExcelKelas(){
 
   // Sheet 2: Murid Perlu Perhatian
   if(d.muridBelumCapai&&d.muridBelumCapai.length>0){
-    var rows2=[['MURID MEMERLUKAN PERHATIAN (TP < 4)'],['']];
+    var rows2=[['MURID MEMERLUKAN PERHATIAN (TP < 3)'],['']];
     rows2.push(['No','Nama Murid','Subtopik','TP Semasa']);
     d.muridBelumCapai.forEach(function(m){
       m.tpRendah.forEach(function(r){
@@ -1013,7 +1013,7 @@ function eksportExcelMurid(){
         hasilArr.forEach(function(d){
           if(!d) return;
           d.topik.forEach(function(t){
-            var status=t.tp===0?'Belum Dinilai':t.tp<4?'Perlu Perhatian':t.tp<6?'Mencapai':'Cemerlang';
+            var status=t.tp===0?'Belum Dinilai':t.tp<3?'Perlu Perhatian':t.tp<6?'Mencapai':'Cemerlang';
             rowsAll.push([d.murid.no,d.murid.nama,t.kodDSKP,t.tajuk,t.nama,t.tp>0?t.tp:'',status]);
           });
           rowsAll.push(['','Purata TP: '+d.purata,'','','','','']);
@@ -1033,7 +1033,7 @@ function eksportExcelMurid(){
           rows.push(['']);
           rows.push(['Kod DSKP','Tajuk','Subtopik','TP','Status']);
           d.topik.forEach(function(t){
-            var status=t.tp===0?'Belum Dinilai':t.tp<4?'Perlu Perhatian':t.tp<6?'Mencapai':'Cemerlang';
+            var status=t.tp===0?'Belum Dinilai':t.tp<3?'Perlu Perhatian':t.tp<6?'Mencapai':'Cemerlang';
             rows.push([t.kodDSKP,t.tajuk,t.nama,t.tp>0?t.tp:'',status]);
           });
           var ws=XLSX.utils.aoa_to_sheet(rows);
